@@ -12,13 +12,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
-
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('Error connecting to MongoDB:', err));
 // Configurar JWT_SECRET
 const jwtSecret = process.env.JWT_SECRET;
 
