@@ -1,18 +1,28 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config');
+const User = require('../models/userModel');
 
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: 'Acceso no autorizado' });
+const protect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
+
   try {
-    const decodedToken = jwt.verify(token, config.secretKey);
-    req.userId = decodedToken.userId;
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Token inválido' });
+    res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
 
-module.exports = verifyToken;
+const admin = (req, res, next) => {
+  if (req.user?.isAdmin) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized as an admin' });
+  }
+};
+
+module.exports = { protect, admin };

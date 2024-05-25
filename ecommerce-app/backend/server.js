@@ -1,22 +1,43 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const config = require('./config');
-const productosRouter = require('./routes/productos');
-const carritoRouter = require('./routes/carrito');
-const culqiRouter = require('./routes/culqi');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
-const mongoURI = 'mongodb+srv://cristhiangutierrezpalomino06:iojQrjiub3p0je5u@cluster0.s6onttn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-mongoose.connect(config.mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+const port = process.env.PORT || 3000;
 
+// Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/productos', productosRouter);
-app.use('/api/carrito', carritoRouter);
-app.use('/api/culqi', culqiRouter);
+// Conectar a MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
- 
+// Configurar JWT_SECRET
+const jwtSecret = process.env.JWT_SECRET;
+
+// Rutas
+const homeRoutes = require('./routes/homeRoutes');
+const couponRoutes = require('./routes/couponRoutes');
+const userRoutes = require('./routes/userRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const productRoutes = require('./routes/productRoutes');
+app.use('/api/products', productRoutes);
+app.use('/api/home', homeRoutes);
+app.use('/api', couponRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/orders', orderRoutes);
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
